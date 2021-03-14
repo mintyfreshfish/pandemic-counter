@@ -1,13 +1,32 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Legacy from '../views/Legacy.vue'
+import Pandemic from '../views/Pandemic.vue'
+import LegacyMap from '../views/LegacyMap.vue'
+import Form from '../views/Form.vue'
 
 Vue.use(VueRouter)
 
-const routes = [{
+const routes = [
+  {
     path: '/',
-    name: 'home',
-    component: Home
+    name: 'legacy',
+    component: Legacy
+  },
+  {
+    path: '/pandemic',
+    name: 'pandemic',
+    component: Pandemic
+  },
+  {
+    path: '/map',
+    name: 'legacyMap',
+    component: LegacyMap
+  },
+  {
+    path: '/game',
+    name: 'form',
+    component: Form,
   },
 ]
 

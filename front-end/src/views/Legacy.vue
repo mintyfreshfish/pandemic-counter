@@ -4,7 +4,14 @@
         <div class="no-margin">
             <b-button id="modbtn1" class="modalButton bg-success shadow-none border-success rounded-0" v-b-modal.modal-1>What We Know</b-button>
 
-            <b-modal id="modal-1" title="What We Know">
+            <b-modal hide-footer id="modal-1" title="What We Know" @show="resetModal" @hidden="resetModal">
+                <b-button @click="bump('discard')">Discard Pile</b-button>
+                <div v-show="showDiscardPile">
+                    <div v-for="card in currentStack" :key="card.id">
+                        <p v-show="card.count>0">{{card.name}}: {{card.count}}</p>
+                    </div>
+                </div>
+
                 <div v-for="card in stackHistory" :key="card.id">
                     <h4>{{stackHistory.indexOf(card)}}: </h4>
                     <div v-for="c in card" :key="c.id">
@@ -12,23 +19,54 @@
                     </div>
                 </div>
             </b-modal>
-            <b-button id="modbtn2" class="modalButton bg-primary shadow-none border-primary rounded-0" v-b-modal.modal-2>Add</b-button>
+            <b-button id="modbtn2" class="modalButton bg-primary shadow-none border-primary rounded-0" v-b-modal.modal-2>Cities</b-button>
 
-            <b-modal id="modal-2" title="New City!">
-                <b-form-group id="input-group-1" label="Name:" label-for="input-1" description="city name">
-                    <b-form-input id="input-1" v-model="dataName" placeholder="city name" required></b-form-input>
-                </b-form-group>
+            <b-modal hide-footer id="modal-2" title="New City!">
+                <div class="form">
+                    <b-form-group id="input-group-type" label="Type:" label-for="input-type">
+                        <b-form-select class="mt-2 mb-3" id="input-type" v-model="dataKind" :options="kinds" required></b-form-select>
+                    </b-form-group>
 
-                <b-form-group id="input-group-3" label="Color:" label-for="input-3">
-                    <b-form-select id="input-3" v-model="dataColor" :options="colors" required></b-form-select>
-                </b-form-group>
+                    <b-form-group id="input-group-1" label="Name:" label-for="input-1" description="">
+                        <b-form-input class="mt-2 mb-3" id="input-1" v-model="dataName" placeholder="" required></b-form-input>
+                    </b-form-group>
 
+                    <b-form-group class="" id="input-group-4" label="Amount" label-for="input-4">
+                        <b-form-select class="mt-2 mb-3" id="input-4" v-model="dataCount" :options="numbers" required></b-form-select>
+                    </b-form-group>
 
-                <b-form-group id="input-group-2" label="special" label-for="input-2">
-                    <b-form-input id="input-2" v-model="dataSpecial" placeholder="anything special?"></b-form-input>
-                </b-form-group>
+                    <b-form-group id="input-group-3" label="Color:" label-for="input-3">
+                        <b-form-select class="mt-2 mb-3" id="input-3" v-model="dataColor" :options="colors" required></b-form-select>
+                    </b-form-group>
 
-                <b-button @click="upload()" variant="primary">Submit</b-button>
+                    <b-form-group id="input-group-2" label="Tag:" label-for="input-2">
+                        <b-form-input class="mt-2 mb-3" id="input-2" v-model="dataTag" placeholder=""></b-form-input>
+                    </b-form-group>
+
+                    <b-form-group id="input-group-pop" label="Population:" label-for="input-pop">
+                        <b-form-select :options="numbers" class="mt-2 mb-3" id="input-pop" v-model="dataPopulation" placeholder=""></b-form-select>
+                    </b-form-group>
+
+                    <div class="form">
+                        <input type="file" name="photo" @change="fileChanged">
+                        <button @click="upload">Upload</button>
+                    </div>
+                    <div class="upload" v-if="addItem">
+                        <img :src="addItem.path" />
+                    </div>
+
+                    <b-button v-b-modal="'modal-2'" @click="upload()" variant="primary">Submit</b-button>
+                </div>
+
+                <div class="form">
+                    <h2>Delete</h2>
+
+                    <b-form-group class="" id="input-group-7" label="city to delete:" label-for="input-7">
+                        <b-form-select class="mt-2 mb-3" id="input-7" v-model="dataName" :options="distinctNames" required></b-form-select>
+                    </b-form-group>
+
+                    <b-button class="mr-4" variant="danger" @click="deleteCity()">Delete</b-button>
+                </div>
             </b-modal>
         </div>
 
@@ -44,9 +82,23 @@
                     </div>
                 </b-button>
             </div>
-            <b-button class="city bg-success shadow-none border-success rounded-0" id="epidemic" v-touch:tap="epiTap" v-touch:touchhold="epiHold">
+
+            <b-button v-b-modal="'epidemicModal'" class="city bg-success shadow-none border-success rounded-0" id="epidemic" v-touch:touchhold="epiHold">
                 <h2>Epidemic!</h2>
             </b-button>
+
+            <b-modal hide-footer hide-header id="epidemicModal">
+                <b-form-group id="input-group-e" label="City:" label-for="input-e">
+                    <b-form-select class="mt-2 mb-3" id="input-e" v-model="dataCity" :options="distinctNames" required></b-form-select>
+                </b-form-group>
+
+                <b-form-group id="input-group-i" label="Rate:" label-for="input-i">
+                    <b-form-select class="mt-2 mb-3" id="input-i" v-model="infectionRate" :options="numbers" required></b-form-select>
+                </b-form-group>
+
+                <b-button variant="success" v-touch:tap="epiTap">Epidemic!</b-button>
+
+            </b-modal>
         </div>
 
         <div id="specialEvents" v-show="showSpecialEvents">
@@ -54,8 +106,8 @@
             <br>
             <b-form>
 
-                <b-form-group id="input-group-5" label="City Name:" label-for="input-5">
-                    <b-form-select class="m-2 mt-3" id="input-5" v-model="dataName" :options="distinctNames" required></b-form-select>
+                <b-form-group id="input-group-o" label="City:" label-for="input-o">
+                    <b-form-select class="mt-2 mb-3" id="input-o" v-model="dataName" :options="currentStackNames()" required></b-form-select>
                 </b-form-group>
 
                 <br>
@@ -73,7 +125,7 @@
     </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
     template {
         padding: 0%;
     }
@@ -169,6 +221,10 @@
         padding: 0px;
     }
 
+    .form {
+        margin-bottom: 100px;
+    }
+
     #modbtn1 {
         float: left;
         margin-bottom: 5px;
@@ -208,6 +264,7 @@
                 stack: [],
                 stackHistory: [],
                 drawStack: [],
+                infectionRate: 2,
                 distinctNames: [{
                     text: 'Select One',
                     value: null
@@ -215,9 +272,17 @@
                 currentStack: [],
                 addItem: null,
                 dataName: '',
-                dataCount: 4,
+                dataCount: 1,
                 dataColor: '',
+                dataTag: '',
+                dataAbilities: '',
+                dataSupply: 0,
+                dataPlague: 0,
                 dataSpecial: '',
+                dataPopulation: 0,
+                dataKind: '',
+                dataOrigin: '',
+                dataExposure: 0,
                 colors: [{
                     text: 'Select One',
                     value: null
@@ -225,14 +290,32 @@
                 numbers: [{
                     text: 'Select One',
                     value: null
-                }, '1', '2', '3', '4'],
+                }, '0', '1', '2', '3', '4','5','6','7','8'],
+                kinds: [{
+                    text: 'Select One',
+                    value: null
+                }, 'city', 'haven'],
                 showSpecialEvents: false,
+                showDiscardPile: false,
             }
         },
         created() {
             this.getStack(); //retrieve from database and assign to itesm[]
         },
         methods: {
+            bump(att) {
+                if (att == "discard") {
+                    if (this.showDiscardPile == true) {
+                        this.showDiscardPile = false;
+                    } else {
+                        this.showDiscardPile = true;
+                    }
+                }
+            },
+
+            resetModal() {
+                this.showDiscardPile = false;
+            },
 
             tapHandler: function(event) {
                 let cardName = ""
@@ -282,7 +365,12 @@
             async getStack() {
                 try {
                     let response = await axios.get("/api/items");
-                    this.stack = response.data;
+                    // this.stack = response.data;
+                    for (let i = 0; i < response.data.length; i++) {
+                        if (response.data[i].count != 0 && response.data[i].kind != 'haven') {
+                            this.stack.push(response.data[i])
+                        }
+                    }
                 } catch (error) {
                     console.log(error);
                 }
@@ -304,20 +392,101 @@
 
             async upload() {
                 try {
+                    console.log(this.stack.indexOf(this.dataName));
+                    //check for validity: must have name and color and cannot already exist in the stack
+                    if (this.dataName == "" || this.stack.indexOf(this.dataName) != -1) {
+                        alert("invalid city")
+                        return
+                    } else if (this.stack.indexOf(this.dataTag) != -1) {
+                        alert("tag taken")
+                        return
+                    }
+                    let photoPath = ""
+                    if (this.file != null)
+{                    const formData = new FormData();
+                    formData.append('photo', this.file)
+                    let r1 = await axios.post('/api/photos', formData);
+                    photoPath = r1.data.path
+                    }
                     console.log("moving to r2");
                     let r2 = await axios.post('/api/items', {
                         name: this.dataName,
                         count: this.dataCount,
                         color: this.dataColor,
-                        special: this.dataSpecial,
+                        tag: this.dataTag,
+                        supplyCubes: 0,
+                        plagueCubes: 0,
+                        supplyCenter: false,
+                        special: '',
+                        position: [],
+                        kind: this.dataKind,
+                        population: this.dataPopulation,
+                        path: photoPath
                     });
                     console.log("assigned r2");
                     this.addItem = r2.data;
+                    console.log("added item");
+                    //reset variables
+                    this.dataName = "";
+                    this.dataCount = 4;
+                    this.dataColor = "";
+                    this.dataTag = "";
+                    this.dataKind = "";
+                    this.dataPopulation = "";
+                } catch (error) {
+                    console.log(error);
+                }
+
+            },
+
+            fileChanged(event) {
+                this.file = event.target.files[0]
+            },
+
+            async uploadCharacter() {
+                try {
+                    const formData = new FormData();
+                    formData.append('photo', this.file)
+                    let r1 = await axios.post('/api/photos', formData);
+                    console.log("moving to r2");
+                    let r2 = await axios.post('/api/characters', {
+                        name: this.dataName,
+                        exposure: this.dataExposure,
+                        color: this.dataColor,
+                        abilities: this.dataAbilities,
+                        hand: [],
+                        origin: this.dataOrigin,
+                        image: r1.data.path
+                    });
+                    console.log("assigned r2");
+                    this.addCharacter = r2.data;
                     console.log("added item");
                 } catch (error) {
                     console.log(error);
                 }
 
+            },
+
+            async deleteCity() {
+                try {
+                    let item;
+                    for (let i = 0; i < this.stack.length; i++) {
+                        if (this.stack[i].name == this.dataName) {
+                            item = this.stack[i]
+                            console.log("found item")
+                        }
+                    }
+                    await axios.delete("/api/items/" + item._id);
+                    this.getStack();
+                    //reset variables
+                    this.dataName = "";
+                    this.dataCount = 4;
+                    this.dataTag = ""
+                    console.log("deleted")
+                    return true;
+                } catch (error) {
+                    console.log(error);
+                }
             },
 
             update(cityName) {
@@ -367,6 +536,7 @@
             },
 
             epidemic() {
+                this.update(this.dataName)
                 let stackClone = []
                 for (let i = 0; i < this.currentStack.length; i++) {
                     const card = this.currentStack[i]
@@ -405,8 +575,14 @@
                 for (let i = 0; i < arr.length; i++) {
                     total += arr[i].count
                 }
-                const percentage = Math.round(100 * (count / total));
-                return percentage;
+                let percentage = 0;
+                for (let i = 0; i < this.infectionRate; i++) {
+                    percentage += (count / (total - i))
+                    if (percentage > 1) {
+                        percentage = 1;
+                    }
+                }
+                return Math.round(100 * percentage);
             },
 
             override() {
@@ -421,6 +597,17 @@
 
                 }
                 this.showSpecialEvents = false;
+                this.dataName = "";
+            },
+
+            currentStackNames() {
+                let stackNames = [];
+                for (let i = 0; i < this.currentStack.length; i++) {
+                    if (this.currentStack[i].count >= 1) {
+                        stackNames.push(this.currentStack[i].name);
+                    }
+                }
+                return stackNames;
             }
         }
     }
