@@ -124,11 +124,11 @@
             <button v-touch:tap="setPawns">Reset Pawns</button>
             <button v-touch:tap="showPawns">Show Pawns</button>
             <h2 v-if="activeCity != null">{{activeCity.name}}: Supply
-                <b-form-spinbutton id="supplyCubeSpin" v-model="dataSupply" min="1" max="10" inline vertical></b-form-spinbutton>
+                <b-form-spinbutton id="supplyCubeSpin" v-model="dataSupply" min="0" max="10" inline vertical></b-form-spinbutton>
                 Plague
-                <b-form-spinbutton id="plagueSpin" v-model="dataPlague" min="1" max="10" inline vertical></b-form-spinbutton>
+                <b-form-spinbutton id="plagueSpin" v-model="dataPlague" min="0" max="10" inline vertical></b-form-spinbutton>
                 Population
-                <b-form-spinbutton id="popSpin" v-model="dataPopulation" min="1" max="10" inline vertical></b-form-spinbutton>
+                <b-form-spinbutton id="popSpin" v-model="dataPopulation" min="0" max="10" inline vertical></b-form-spinbutton>
                 Supply Center
                 <b-form-select :value="dataCenter" :options="boolOptions"></b-form-select>
                 <b-button variant="primary" @click="editCity(activeCity)">Save</b-button>
