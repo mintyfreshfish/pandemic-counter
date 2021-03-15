@@ -123,17 +123,19 @@
         <div id="worldmap">
             <button v-touch:tap="setPawns">Reset Pawns</button>
             <button v-touch:tap="showPawns">Show Pawns</button>
-            <h2 v-if="activeCity != null">{{activeCity.name}}: Supply
-                <b-form-spinbutton id="supplyCubeSpin" v-model="dataSupply" min="0" max="10" inline vertical></b-form-spinbutton>
-                Plague
-                <b-form-spinbutton id="plagueSpin" v-model="dataPlague" min="0" max="10" inline vertical></b-form-spinbutton>
-                Population
-                <b-form-spinbutton id="popSpin" v-model="dataPopulation" min="0" max="10" inline vertical></b-form-spinbutton>
-                Supply Center
-                <b-form-select :value="dataCenter" :options="boolOptions"></b-form-select>
-                <b-button variant="primary" @click="editCity(activeCity)">Save</b-button>
-                <b-button variant="primary" @click="moveIt()">Move!</b-button>
-            </h2>
+            <span>
+                <h2 v-if="activeCity != null">{{activeCity.name}}: Supply
+                    <b-form-spinbutton id="supplyCubeSpin" v-model="dataSupply" min="0" max="10" inline vertical></b-form-spinbutton>
+                    Plague
+                    <b-form-spinbutton id="plagueSpin" v-model="dataPlague" min="0" max="10" inline vertical></b-form-spinbutton>
+                    Population
+                    <b-form-spinbutton id="popSpin" v-model="dataPopulation" min="0" max="10" inline vertical></b-form-spinbutton>
+                    Supply Center
+                    <b-form-select :value="dataCenter" :options="boolOptions" style="width: 100px;"></b-form-select>
+                    <b-button variant="primary" @click="editCity(activeCity)">Save</b-button>
+                    <b-button variant="primary" @click="moveIt()">Move!</b-button>
+                </h2>
+            </span>
             <div v-for="city in deck.data" :key="city.id">
                 <div class="city" :class="city.tag" v-b-tooltip.hover.right="city.name">
                     <span v-touch:tap="pawnHandler" id="pink" class="pawn hidden unfocus"></span>
@@ -320,13 +322,13 @@
                             this.characters[i].location = "JW"
                         }
                     }
-                        console.log(`finding location for ${this.characters[i].name} who is in ${this.characters[i].location}`)
+                    console.log(`finding location for ${this.characters[i].name} who is in ${this.characters[i].location}`)
                     // console.log(`checking ${this.characters[i].location} against ${e.innerHTML}`)
                     while (true && x < 50) {
                         try {
-                                console.log(`found ${this.characters[i].location}`)
-                                for (let k = 0; k < e.childNodes[0].childNodes.length; k++) {
-                                    if (e.childNodes[0].className == (`city ${this.characters[i].location}`))
+                            console.log(`found ${this.characters[i].location}`)
+                            for (let k = 0; k < e.childNodes[0].childNodes.length; k++) {
+                                if (e.childNodes[0].className == (`city ${this.characters[i].location}`))
                                     if (e.childNodes[0].childNodes[k].id.includes(this.characters[i].color)) {
                                         e.childNodes[0].childNodes[k].className = e.childNodes[0].childNodes[k].className.replace("hidden", "show");
                                     }
@@ -335,7 +337,7 @@
                         } catch (error) {
                             console.log(error)
                         }
-                            x++;
+                        x++;
                     }
                     e = constE;
                     x = 0;
