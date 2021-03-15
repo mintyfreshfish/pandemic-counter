@@ -609,7 +609,8 @@
 
     .cityName {
         text-align: center;
-        font-size: 30px;
+        font-size: 20px;
+        width: 20px;
         position: absolute;
         left: 5px;
         top: 0px;
@@ -854,6 +855,12 @@
         @include blue;
     }
 
+    .MC {
+        @include yellow;
+        left: 220px;
+        top: 450px;
+    }
+
     .Z {
         left: 700px;
         top: 600px;
@@ -877,6 +884,7 @@
         border-radius: 50%;
         border: 1px solid black
     }
+
 
     .haven {
         left: 10px;
