@@ -536,7 +536,7 @@
             },
 
             epidemic() {
-                this.update(this.dataName)
+                this.update(this.dataCity)
                 let stackClone = []
                 for (let i = 0; i < this.currentStack.length; i++) {
                     const card = this.currentStack[i]
