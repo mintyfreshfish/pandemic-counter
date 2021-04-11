@@ -1,14 +1,28 @@
 <template class="no-margin">
-<div id="app" class="no-margin">
-  <div class="content no-margin">
-    <router-view />
-  </div>
-</div>
+    <div id="app" class="no-margin">
+        <div class="content no-margin">
+            <router-view />
+        </div>
+    </div>
 </template>
 
 <style>
-.no-margin {
+    .no-margin {
         margin: 0px;
         padding: 0px;
     }
 </style>
+
+<script>
+    export default {
+        props: [],
+        data() {
+            return {
+            }
+        },
+        created() {
+        },
+        methods: {
+        },
+    }
+</script>

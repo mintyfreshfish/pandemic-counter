@@ -43,14 +43,12 @@ const itemSchema = new mongoose.Schema({
   count: Number,
   color: String,
   tag: String,
-  supplyCubes: Number,
-  plagueCubes: Number,
-  supplyCenter: Boolean,
-  special: String,
-  position: Array,
   population: Number,
-  kind: String,
+  supplyCenter: Boolean,
   path: String,
+  xcor: Number,
+  ycor: Number,
+  special: String,
 });
 
 const charSchema = new mongoose.Schema({
@@ -74,10 +72,28 @@ const cardSchema = new mongoose.Schema({
   color: String,
 })
 
+const objectiveSchema = new mongoose.Schema({
+  objective: String,
+  mandatory: Boolean,
+})
+
+const actionSchema = new mongoose.Schema({
+  title: String,
+  action: String,
+})
+
+const miscSchema = new mongoose.Schema({
+  title: String,
+  body: String,
+})
+
 // Create a model for items in the museum.
 const Item = mongoose.model('Item', itemSchema);
 const Character = mongoose.model('Character', charSchema);
 const Card = mongoose.model('Card', cardSchema);
+const Objective = mongoose.model('Objective', objectiveSchema);
+const Action = mongoose.model('Action', actionSchema);
+const Misc = mongoose.model('Misc', miscSchema);
 
 // Create a new item in the museum: takes a title and a path to an image.
 app.post('/api/items', async (req, res) => {
@@ -86,14 +102,12 @@ app.post('/api/items', async (req, res) => {
     count: req.body.count,
     color: req.body.color,
     tag: req.body.tag,
-    supplyCubes: req.body.supplyCubes,
-    plagueCubes: req.body.plagueCubes,
-    supplyCenter: req.body.supplyCenter,
-    special: req.body.special,
-    position: req.body.position,
-    kind: req.body.kind,
     population: req.body.population,
+    supplyCenter: req.body.supplyCenter,
     path: req.body.path,
+    xcor: req.body.xcor,
+    ycor: req.body.ycor,
+    special: req.body.special,
   });
   try {
     await item.save();
@@ -143,6 +157,48 @@ app.post('/api/cards', async (req, res) => {
   }
 });
 
+app.post('/api/objectives', async (req, res) => {
+  const objective = new Objective({
+    objective: req.body.objective,
+    mandatory: req.body.mandatory,
+  });
+  try {
+    await objective.save();
+    res.send(objective);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.post('/api/actions', async (req, res) => {
+  const action = new Action({
+    title: req.body.title,
+    action: req.body.action,
+  });
+  try {
+    await action.save();
+    res.send(action);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.post('/api/misc', async (req, res) => {
+  const misc = new Misc({
+    title: req.body.title,
+    body: req.body.body,
+  });
+  try {
+    await misc.save();
+    res.send(misc);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
 // Get a list of all of the items in the museum.
 app.get('/api/items', async (req, res) => {
   try {
@@ -168,6 +224,36 @@ app.get('/api/cards', async (req, res) => {
   try {
     let cards = await Card.find();
     res.send(cards);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.get('/api/objectives', async (req, res) => {
+  try {
+    let objectives = await Objective.find();
+    res.send(objectives);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.get('/api/actions', async (req, res) => {
+  try {
+    let actions = await Action.find();
+    res.send(actions);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
+app.get('/api/misc', async (req, res) => {
+  try {
+    let miscs = await Misc.find();
+    res.send(miscs);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
@@ -204,6 +290,36 @@ app.delete('/api/cards/:id', async(req, res) => {
     }
 });
 
+app.delete('/api/objectives/:id', async(req, res) => {
+  try {
+    await Objective.deleteOne({_id: req.params.id});
+    res.sendStatus(200);
+    } catch (error) {
+      console.log(error);
+      res.sendStatus(500);
+    }
+});
+
+app.delete('/api/actions/:id', async(req, res) => {
+  try {
+    await Action.deleteOne({_id: req.params.id});
+    res.sendStatus(200);
+    } catch (error) {
+      console.log(error);
+      res.sendStatus(500);
+    }
+});
+
+app.delete('/api/misc/:id', async(req, res) => {
+  try {
+    await Misc.deleteOne({_id: req.params.id});
+    res.sendStatus(200);
+    } catch (error) {
+      console.log(error);
+      res.sendStatus(500);
+    }
+});
+
 app.put('/api/items/:id', async(req, res) => {
   try {
     let item = await Item.findOne({_id: req.params.id});
@@ -211,13 +327,12 @@ app.put('/api/items/:id', async(req, res) => {
     item.count = req.body.count;
     item.color = req.body.color;
     item.tag = req.body.tag;
-    item.supplyCubes = req.body.supplyCubes;
-    item.plagueCubes = req.body.plagueCubes;
     item.supplyCenter = req.body.supplyCenter;
     item.special = req.body.special;
-    item.position = req.body.position;
     item.population = req.body.population;
     item.path = req.body.path;
+    item.xcor = req.body.xcor;
+    item.ycor = req.body.ycor;
     await item.save();
     res.send(item);
   } catch (error) {
@@ -232,11 +347,11 @@ app.put('/api/characters/:id', async(req, res) => {
     character.name = req.body.name;
     character.exposure = req.body.exposure;
     character.color = req.body.color;
-    character.abilities = req.body.population;
+    character.abilities = req.body.abilities;
     character.hand = req.body.hand;
     character.image = req.body.image,
     character.player = req.body.player,
-    character.location = req.body.location,
+    character.origin = req.body.origin,
     await character.save();
     res.send(character);
   } catch (error) {
@@ -256,6 +371,45 @@ app.put('/api/cards/:id', async(req, res) => {
     card.color = req.body.color;
     await card.save();
     res.send(card);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+})
+
+app.put('/api/objectives/:id', async(req, res) => {
+  try {
+    let objective = await Objective.findOne({_id: req.params.id});
+    objective.objective = req.body.objective;
+    objective.mandatory = req.body.mandatory;
+    await objective.save();
+    res.send(objective);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+})
+
+app.put('/api/actions/:id', async(req, res) => {
+  try {
+    let action = await Action.findOne({_id: req.params.id});
+    action.title = req.body.title;
+    action.action = req.body.action;
+    await action.save();
+    res.send(action);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+})
+
+app.put('/api/misc/:id', async(req, res) => {
+  try {
+    let misc = await Misc.findOne({_id: req.params.id});
+    misc.title = req.body.title;
+    misc.body = req.body.body;
+    await misc.save();
+    res.send(misc);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);

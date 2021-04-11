@@ -11,12 +11,14 @@
     "core-js": "^3.7.0",
     "sass": "^1.32.8",
     "scss": "^0.2.4",
+    "sass-loader": "^10.1.1",
     "socket.io": "^4.0.0",
     "socket.io-client": "^4.0.0",
     "vue": "^2.6.12",
     "vue-resize-text": "^0.1.1",
     "vue-router": "^3.4.9",
-    "vue2-touch-events": "^3.2.0"
+    "vue2-touch-events": "^3.2.0",
+    "bootstrap-vue": "latest"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.2.0",

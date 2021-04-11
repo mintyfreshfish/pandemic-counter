@@ -1,9 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Legacy from '../views/Legacy.vue'
-import Pandemic from '../views/Pandemic.vue'
 import LegacyMap from '../views/LegacyMap.vue'
-import Form from '../views/Form.vue'
+import Admin from '../views/Admin.vue'
 
 Vue.use(VueRouter)
 
@@ -14,19 +13,14 @@ const routes = [
     component: Legacy
   },
   {
-    path: '/pandemic',
-    name: 'pandemic',
-    component: Pandemic
-  },
-  {
     path: '/map',
     name: 'legacyMap',
     component: LegacyMap
   },
   {
-    path: '/game',
-    name: 'form',
-    component: Form,
+    path: '/admin',
+    name: 'admin',
+    component: Admin,
   },
 ]
 
