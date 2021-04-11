@@ -79,8 +79,8 @@
                     // }
                     // console.log(this.stack.indexOf(this.dataName));
                     //check for validity: must have name and color and cannot already exist in the stack
-                    if (this.objective == "" || this.objective == undefined || this.title == "" || this.title == undefined) {
-                        alert("invalid objective")
+                    if (this.action == "" || this.action == undefined || this.title == "" || this.title == undefined) {
+                        alert("invalid action")
                         return
                     } 
                     let r2 = await axios.post('/api/actions', {

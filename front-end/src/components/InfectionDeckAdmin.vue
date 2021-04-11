@@ -191,7 +191,7 @@
                     if (this.special == undefined || this.special == ": ") {
                         this.special = "";
                     } else if (this.special[0] == ':') {
-                        this.special.splice(1)
+                        this.special.slice(1)
                         } else {
                         this.special = ": " + this.special
                     }
