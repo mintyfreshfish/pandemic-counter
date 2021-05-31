@@ -7,6 +7,8 @@
             <input v-model="cityName" placeholder="City Name">
             <span>count</span>
             <input v-model="cityCount" placeholder="Count">
+            <span>box6</span>
+            <input v-model="box6" placeholder="box6">
             <span>color</span>
             <b-form-select v-model="cityColor" :options="colorOptions"></b-form-select>
             <span>tag</span>
@@ -57,6 +59,7 @@
                 xcor: 0,
                 ycor: 0,
                 special: "",
+                box6: 0,
                 findItem: null,
                 addItem: null,
                 colorOptions: [{
@@ -96,6 +99,7 @@
                 this.xcor = item.xcor;
                 this.ycor = item.ycor;
                 this.special = item.special;
+                this.box6 = item.box6
             },
             resetItems() {
                 this.findItem = null;
@@ -107,6 +111,7 @@
                 this.xcor = 0;
                 this.ycor = 0;
                 this.special = "";
+                this.box6 = 0;
             },
             fileChanged(event) {
                 this.file = event.target.files[0]
@@ -159,6 +164,7 @@
                         xcor: this.xcor,
                         ycor: this.ycor,
                         special: this.special,
+                        box6: this.box6,
                         path: photoPath
                     });
                     console.log("assigned r2");
@@ -212,6 +218,7 @@
                         xcor: this.xcor,
                         ycor: this.ycor,
                         special: this.special,
+                        box6: this.box6,
                         path: photoPath,
                     });
                     this.findItem = null;

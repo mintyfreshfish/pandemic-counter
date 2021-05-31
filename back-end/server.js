@@ -49,6 +49,7 @@ const itemSchema = new mongoose.Schema({
   xcor: Number,
   ycor: Number,
   special: String,
+  box6: Number,
 });
 
 const charSchema = new mongoose.Schema({
@@ -108,6 +109,7 @@ app.post('/api/items', async (req, res) => {
     xcor: req.body.xcor,
     ycor: req.body.ycor,
     special: req.body.special,
+    box6: req.body.box6,
   });
   try {
     await item.save();
@@ -333,6 +335,7 @@ app.put('/api/items/:id', async(req, res) => {
     item.path = req.body.path;
     item.xcor = req.body.xcor;
     item.ycor = req.body.ycor;
+    item.box6 = req.body.box6
     await item.save();
     res.send(item);
   } catch (error) {

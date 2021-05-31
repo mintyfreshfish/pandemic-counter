@@ -1,6 +1,99 @@
-<template class="no-margin">
-    <div class="home no-margin">
+<!--
+ToDo:
+Make cities stay on screen when reach 0, but fade out. Same with cities that have populations of 0, or no longer have cards in the deck.
+Make admin page easier to access (button) and allows to remove cities from discard pile and remove indefinitely (and an option to undo this action)
+Check discard pile and make sure it is accessible.
+-->
 
+<template class="no-margin">
+    <div class="home">
+        <div class="banner">
+            <h1 class="bannertitle">Pandemic Counter</h1>
+        </div>
+        <div class="column sidebar">
+            <div class="menu">
+                <button v-b-modal="'epidemicModal'" class="epibutton">
+                    <h4>Epidemic!</h4>
+                </button>
+                <b-modal hide-footer hide-header id="epidemicModal">
+                    <b-form-group id="input-group-e" label="City:" label-for="input-e">
+                        <b-form-select class="mt-2 mb-3" id="input-e" v-model="dataCity" :options="distinctNames" required></b-form-select>
+                    </b-form-group>
+
+                    <b-form-group id="input-group-i" label="Rate:" label-for="input-i">
+                        <b-form-select class="mt-2 mb-3" id="input-i" v-model="infectionRate" :options="numbers" required></b-form-select>
+                    </b-form-group>
+
+                    <b-button variant="success" @click="epidemic()">Epidemic!</b-button>
+
+                </b-modal>
+                <button v-b-modal="'adminModal'" class="adminbutton">
+                    <h4>Admin</h4>
+                </button>
+                <b-modal hide-footer hide-header id="adminModal">
+                    <b-form-group id="input-group-e" label="City:" label-for="input-e">
+                        <b-form-select class="mt-2 mb-3" id="input-e" v-model="dataCity" :options="distinctNames" required></b-form-select>
+                    </b-form-group>
+
+                    <b-form-group id="input-group-i" label="Rate:" label-for="input-i">
+                        <b-form-select class="mt-2 mb-3" id="input-i" v-model="toRemove" :options="numbers" required></b-form-select>
+                    </b-form-group>
+
+                    <b-button variant="primary" @click="removecard()">Remove!</b-button>
+                    <b-button variant="secondary" @click="replaceCard()">Replace!</b-button>
+
+                </b-modal>
+            </div>
+            <div>
+                <div class="oogbanner">
+                    <p class="oogtitle">Out of Game</p>
+                </div>
+                <div v-for="card in stack" :key="card.id">
+                    <p v-if="card.outOfGame>=1">{{card.name}}: {{card.outOfGame}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="column piles">
+            <div class="drawpile">
+                <h2 class="piletitle">Draw Pile</h2>
+                <div v-for="card in drawStack" :key="card.id">
+                    <div class="city" :class="determineColor(card, 'drawpile')">
+                        <div class="cityname">
+                            <h4>{{card.name}}</h4>
+                        </div>
+                        <div class="citypercent">
+                            <h4>{{percent(card.inDrawPile, drawStack)}}%</h4>
+                        </div>
+                        <div class="cityamount">
+                            <p>{{card.inDrawPile}} / {{card.count}}</p>
+                        </div>
+                        <button @click="update(card.name)" class="cityicon h3 mb-2">
+                            <b-icon-arrow-right-circle></b-icon-arrow-right-circle>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="discardpile">
+                <h2 class=piletitle>Discard Pile</h2>
+                <div v-for="card in currentStack" :key="card.id">
+                    <div class="city" :class="determineColor(card, 'discardpile')">
+                        <button @click="undo(card.name)" class="cityicon h3 mb-2">
+                            <b-icon-arrow-left-circle></b-icon-arrow-left-circle>
+                        </button>
+                        <div class="cityname">
+                            <h4>{{card.name}}</h4>
+                        </div>
+                        <div class="cityamount">
+                            <p>{{card.inDiscardPile}} / {{card.count}}</p>
+                        </div>
+                        <!-- <button @click="showDropdown($event)" class="cityexclamation cityicon h3 mb-2">
+                            <b-icon-exclamation-circle></b-icon-exclamation-circle>
+                        </button> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--
         <div class="no-margin">
             <b-button id="modbtn1" class="modalButton bg-success shadow-none border-success rounded-0" v-b-modal.modal-1>What We Know</b-button>
 
@@ -70,17 +163,29 @@
             </b-modal>
         </div>
 
-        <div v-if="showSpecialEvents == false">
+        <div v-if="showSpecialEvents == false" class="cityList">
             <div v-for="card in drawStack" :key="card.id">
-                <b-button v-touch:swipe.left="swipeHandler" v-touch:touchhold="touchholdHandler" v-touch:tap="tapHandler" class="city shadow-none border-secondary" :class="card.color">
+                <div class="city" :class="card.color">
                     <div class="wide">
                         <h4>{{card.name}}</h4>
                         <p>amount left: {{card.count}}</p>
                     </div>
-                    <div class="narrow equation">
-                        <h2>{{percent(card.count, drawStack)}}%</h2>
+                    <div class="counter">
+                        <div class="plus">
+                            <button @click="undo(card.name)" class="counterBtn">
+                                <b-icon-plus style="color: white"></b-icon-plus>
+                            </button>
+                        </div>
+                        <div class="minus">
+                            <button @click="update(card.name)" class="counterBtn">
+                                <b-icon-dash style="color: white"></b-icon-dash>
+                            </button>
+                        </div>
+                        <div class="percent">
+                            <h2>{{percent(card.count, drawStack)}}%</h2>
+                        </div>
                     </div>
-                </b-button>
+                </div>
             </div>
 
             <b-button v-b-modal="'epidemicModal'" class="city bg-success shadow-none border-success rounded-0" id="epidemic" v-touch:touchhold="epiHold">
@@ -119,29 +224,183 @@
                 <b-button class="m-4" variant="secondary" @click="showSpecialEvents = false">Cancel</b-button>
             </b-form>
         </div>
-
+-->
 
 
     </div>
 </template>
 
 <style lang="scss" scoped>
-    template {
-        padding: 0%;
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Mate+SC&display=swap');
+
+    .showing {
+        display: block;
     }
 
-    .city p {
-        margin: 0px;
+    .hidden {
+        display: none;
     }
 
-    .city h4 {
-        margin: 0px;
+    h1,
+    h2,
+    h4 {
+        color: white;
+        font-family: 'Montserrat', sans-serif;
     }
 
+    .home {
+        width: 1400px;
+        height: 100%;
+        margin: auto;
+    }
+
+    .banner {
+        height: 100px;
+        text-align: center;
+        padding: 20px 0px;
+        background-color: darkslategray;
+    }
+
+    .bannertitle {
+        font-family: 'Mate SC', serif;
+    }
+
+    .column {
+        position: absolute;
+    }
+
+    .sidebar {
+        background-color: lightgray;
+        width: 200px;
+    }
+
+    .menu {
+        height: 200px;
+        text-align: center;
+    }
+
+    .epibutton {
+        width: 150px;
+        height: 40px;
+        background-color: green;
+        border-radius: 10px;
+        border: none;
+        padding: 5px 0px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+
+    }
+
+    .adminbutton {
+        width: 100px;
+        height: 40px;
+        background-color: blue;
+        border-radius: 10px;
+        border: none;
+        padding: 5px 0px;
+        margin: 10px;
+    }
+
+    .oogbanner {
+        background-color: black;
+        text-align: center;
+        color: white;
+    }
+
+    .oogtitle {
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .piles {
+        background-color: lightpink;
+        margin-left: 200px;
+        width: 1200px;
+    }
+
+    .drawpile {
+        background-color: slategray;
+        width: 50%;
+        float: left;
+    }
+
+    .discardpile {
+        background-color: lightslategray;
+        width: 50%;
+        float: right;
+    }
+
+    .piletitle {
+        text-align: center;
+        padding: 5px 0px;
+    }
 
     .city {
-        width: 100%;
-        position: relative;
+        height: 60px;
+        text-align: center;
+        color: white;
+        display: flex;
+        flex-wrap: wrap;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .cityname {
+        width: 250px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+
+    .citypercent {
+        width: 50px;
+        margin-left: 100px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+
+    .cityamount {
+        width: 100px;
+        margin-left: 50px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .cityicon {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        background-color: rgba(0, 0, 0, 0);
+        border: none;
+        color: white;
+    }
+
+    .cityexclamation {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        width: 50px;
+        margin-left: 100px;
+    }
+
+    .exclamationmenu {
+        align-self: center;
+    }
+
+    .toremove {
+        display: inline;
+        margin: 0px 20px 0px 60px;
+    }
+
+    .removenmbtn {
+        margin: 0px 5px;
+        border: 1px solid black;
+        border-radius: 50%;
+        background-color: red;
+        color: white;
+    }
+
+    .removebtn {
+        border-radius: 10px;
+        border: none;
+        color: white;
+        background-color: blue;
     }
 
     .blue {
@@ -150,40 +409,16 @@
         border: 1px;
     }
 
-    .blue:hover {
-        background-color: #0F4C82;
-    }
-
-    .blue:focus {
-        background-color: #0F4C82;
-    }
-
     .yellow {
         background-color: #F7A400;
         outline: 1px solid rgba(255, 255, 255, 0.59);
         border: 1px;
     }
 
-    .yellow:hover {
-        background-color: #F7A400
-    }
-
-    .yellow:focus {
-        background-color: #F7A400
-    }
-
-    .gray {
+    .black {
         background-color: #838087;
         outline: 1px solid rgba(212, 214, 227, 0.5);
         border: 1px;
-    }
-
-    .gray:hover {
-        background-color: #838087;
-    }
-
-    .gray:focus {
-        background-color: #838087;
     }
 
     .red {
@@ -192,73 +427,147 @@
         border: 1px;
     }
 
-    .wide {
-        width: 50%;
-        float: left;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
+    .faded {
+        background-color: lightgray;
+        color: white;
+        border: 1px;
     }
 
-    .narrow {
-        width: 20%;
-        float: right;
-        margin: 0px 5px;
-    }
+    // template {
+    //     padding: 0%;
+    // }
 
-    .undo {
-        height: 50px;
-        margin: 0px;
-    }
+    // .city p {
+    //     margin: 0px;
+    // }
 
-    .equation {
-        margin-right: 10px;
-        padding-top: 10px;
-    }
+    // .city h4 {
+    //     margin: 0px;
+    // }
 
-    .no-margin {
-        margin: 0px;
-        padding: 0px;
-    }
 
-    .form {
-        margin-bottom: 100px;
-    }
+    // .city {
+    //     width: 100%;
+    //     height: 60px;
+    //     position: relative;
+    // }
 
-    #modbtn1 {
-        float: left;
-        margin-bottom: 5px;
-        width: 70%;
-        height: 60px;
-    }
+    // .cityList {
+    //     background-color: rgba(255, 255, 255, 0);
+    //     color: white;
+    //     transform: translateY(60px);
+    // }
 
-    #modbtn2 {
-        float: right;
-        margin-bottom: 5px;
-        width: 30%;
-        height: 60px;
-    }
+    // .counter {
+    //     display: flex;
+    //     margin: 0;
+    //     position: absolute;
+    //     top: 50%;
+    //     left: 75%;
+    //     transform: translate(-50%, -50%);
+    // }
 
-    #epidemic {
-        height: 70px;
-        margin-top: 5px;
-    }
+    // .counterBtn {
+    //     height: 50px;
+    //     width: 50px;
+    //     border-radius: 20%;
+    //     border: none;
+    //     background-color: rgba(0, 0, 0, 0.4);
+    //     color: rgba(255, 255, 255, 1);
+    //     margin: 0px 5px;
+    // }
 
-    #specialEvents {
-        height: 100%;
-        width: 100%;
-        position: absolute;
-        top: 0;
-        background-color: white;
-        padding: 15px;
-    }
+    // .percent {
+    //     position: absolute;
+    //     margin: 0;
+    //     position: absolute;
+    //     top: 50%;
+    //     right: 80%;
+    //     transform: translate(-50%, -50%);
+    // }
+
+
+    // .wide {
+    //     width: 50%;
+    //     float: left;
+    //     position: absolute;
+    //     top: 50%;
+    //     transform: translateY(-50%);
+    //     text-align: center;
+    // }
+
+    // .narrow {
+    //     width: 20%;
+    //     float: right;
+    //     margin: 0px 5px;
+    // }
+
+    // .undo {
+    //     height: 50px;
+    //     margin: 0px;
+    // }
+
+    // .equation {
+    //     margin-right: 10px;
+    //     padding-top: 10px;
+    // }
+
+    // .no-margin {
+    //     margin: 0px;
+    //     padding: 0px;
+    // }
+
+    // .form {
+    //     margin-bottom: 100px;
+    // }
+
+    // #modbtn1 {
+    //     float: left;
+    //     margin-bottom: 5px;
+    //     width: 70%;
+    //     height: 60px;
+    // }
+
+    // #modbtn2 {
+    //     float: right;
+    //     margin-bottom: 5px;
+    //     width: 30%;
+    //     height: 60px;
+    // }
+
+    // #epidemic {
+    //     height: 70px;
+    //     margin-top: 5px;
+    // }
+
+    // #specialEvents {
+    //     height: 100%;
+    //     width: 100%;
+    //     position: absolute;
+    //     top: 0;
+    //     background-color: white;
+    //     padding: 15px;
+    // }
 </style>
 
 <script>
-    // @ is an alias to /src
     import axios from 'axios';
+    import {
+        // BIconPlus,
+        // BIconDash
+        BIconArrowRightCircle,
+        BIconArrowLeftCircle,
+        // BIconExclamationCircle
+    } from 'bootstrap-vue'
     export default {
         name: 'Home',
+        components: {
+            // BIconPlus,
+            // BIconDash,
+            BIconArrowRightCircle,
+            BIconArrowLeftCircle,
+            // BIconExclamationCircle
+        },
         data() {
             return {
                 stack: [],
@@ -268,7 +577,7 @@
                 distinctNames: [{
                     text: 'Select One',
                     value: null
-                }],
+                }, ],
                 currentStack: [],
                 addItem: null,
                 dataName: '',
@@ -290,19 +599,97 @@
                 numbers: [{
                     text: 'Select One',
                     value: null
-                }, '0', '1', '2', '3', '4','5','6','7','8'],
+                }, '0', '1', '2', '3', '4', '5', '6', '7', '8'],
                 kinds: [{
                     text: 'Select One',
                     value: null
                 }, 'city', 'haven'],
                 showSpecialEvents: false,
                 showDiscardPile: false,
+                toRemove: 0,
+                undoEpidemicTracker: "",
             }
         },
         created() {
             this.getStack(); //retrieve from database and assign to itesm[]
         },
+        computed: {
+            options() {
+                return this.distinctNames
+            }
+        },
         methods: {
+
+            removecard() {
+                for (let i = 0; i < this.currentStack.length; i++) {
+                    var thisCard = this.currentStack[i]
+                    if (thisCard.name == this.dataCity) {
+                        thisCard.count -= this.toRemove;
+                        thisCard.inDiscardPile -= this.toRemove;
+                    }
+                }
+                for (let i = 0; i < this.drawStack.length; i++) {
+                    thisCard = this.drawStack[i]
+                    if (thisCard.name == this.dataCity) {
+                        thisCard.count -= this.toRemove;
+                        // thisCard.inDrawPile -= this.toRemove;
+                    }
+                }
+                for (let i = 0; i < this.stack.length; i++) {
+                    thisCard = this.stack[i]
+                    if (thisCard.name == this.dataCity) {
+                        thisCard.outOfGame += Number(this.toRemove);
+                    }
+                }
+                this.toRemove = 0;
+                this.dataCity = "";
+                return
+            },
+
+            replaceCard() {
+                for (let i = 0; i < this.currentStack.length; i++) {
+                    var thisCard = this.currentStack[i]
+                    if (thisCard.name == this.dataCity) {
+                        thisCard.count += Number(this.toRemove);
+                        thisCard.inDiscardPile += Number(this.toRemove);
+                    }
+                }
+                for (let i = 0; i < this.drawStack.length; i++) {
+                    thisCard = this.drawStack[i]
+                    if (thisCard.name == this.dataCity) {
+                        thisCard.count += Number(this.toRemove);
+                        // thisCard.inDrawPile -= this.toRemove;
+                    }
+                }
+                for (let i = 0; i < this.stack.length; i++) {
+                    thisCard = this.stack[i]
+                    if (thisCard.name == this.dataCity) {
+                        thisCard.outOfGame -= Number(this.toRemove);
+                    }
+                }
+                this.toRemove = 0;
+                this.dataCity = "";
+                return
+            },
+
+            determineColor(card, pile) {
+                let color = ""
+                if (card.inDrawPile == 0 && pile == "drawpile") {
+                    color = "faded"
+                } else if (card.inDiscardPile == 0 && pile == "discardpile") {
+                    color = "faded"
+                } else if (card.color == "blue") {
+                    color = "blue"
+                } else if (card.color == "black") {
+                    color = "black"
+                } else if (card.color == "yellow") {
+                    color = "yellow"
+                } else if (card.color == "red") {
+                    color = "red"
+                }
+                return color
+            },
+
             bump(att) {
                 if (att == "discard") {
                     if (this.showDiscardPile == true) {
@@ -315,51 +702,6 @@
 
             resetModal() {
                 this.showDiscardPile = false;
-            },
-
-            tapHandler: function(event) {
-                let cardName = ""
-
-                if (event.target.tagName == "P" || event.target.tagName == "H4") {
-                    cardName = (event.target.offsetParent.children[0].innerText)
-                } else if (event.target.tagName == "H2") {
-                    cardName = (event.target.offsetParent.children[0].firstChild.innerText)
-                } else if (event.target.tagName == "BUTTON") {
-                    cardName = (event.target.children[0].children[0].innerText)
-                }
-
-                this.update(cardName)
-            },
-
-            swipeHandler: function(event) {
-                if (event == "left") {
-                    this.showSpecialEvents = true;
-                }
-            },
-
-            touchholdHandler: function(event) {
-                console.log("touchHold called");
-                console.log(event);
-
-                let cardName = ""
-
-                if (event.target.tagName == "P" || event.target.tagName == "H4") {
-                    cardName = (event.target.offsetParent.children[0].innerText)
-                } else if (event.target.tagName == "H2") {
-                    cardName = (event.target.offsetParent.children[0].firstChild.innerText)
-                } else if (event.target.tagName == "BUTTON") {
-                    cardName = (event.target.children[0].children[0].innerText)
-                }
-
-                this.undo(cardName)
-            },
-
-            epiTap: function() {
-                this.epidemic()
-            },
-
-            epiHold: function() {
-                this.undoEpidemic()
             },
 
             async getStack() {
@@ -378,15 +720,26 @@
                 let cloneDeck = []
                 for (let i = 0; i < this.stack.length; i++) {
                     const card = this.stack[i]
-                    const currentCard = Object.assign({}, card);
-                    const drawCard = Object.assign({}, card);
-                    cloneDeck.push(drawCard);
-                    this.distinctNames.push(drawCard.name);
-                    currentCard.count = 0;
-                    this.currentStack.push(currentCard);
+                    //add non-server properties
+                    card.inDrawPile = card.count-card.box6;
+                    card.inDiscardPile = 0;
+                    card.outOfGame = card.box6;
+                    if (card.color == "blue" || card.color == "black" || card.color == "yellow" || card.color == "red") {
+                        const currentCard = Object.assign({}, card);
+                        const drawCard = Object.assign({}, card);
+                        cloneDeck.push(drawCard);
+                        this.distinctNames.push({
+                            text: card.name,
+                            value: card.name
+                        });
+                        // currentCard.count = 0;
+                        this.currentStack.push(currentCard);
+                    }
                 }
                 this.stackHistory.push(cloneDeck);
                 this.drawStack = this.stackHistory[0];
+                this.drawStack.sort((a, b) => (a.name > b.name) ? 1 : -1)
+                this.currentStack.sort((a, b) => (a.name > b.name) ? 1 : -1)
                 return true;
             },
 
@@ -402,11 +755,11 @@
                         return
                     }
                     let photoPath = ""
-                    if (this.file != null)
-{                    const formData = new FormData();
-                    formData.append('photo', this.file)
-                    let r1 = await axios.post('/api/photos', formData);
-                    photoPath = r1.data.path
+                    if (this.file != null) {
+                        const formData = new FormData();
+                        formData.append('photo', this.file)
+                        let r1 = await axios.post('/api/photos', formData);
+                        photoPath = r1.data.path
                     }
                     console.log("moving to r2");
                     let r2 = await axios.post('/api/items', {
@@ -419,6 +772,8 @@
                         supplyCenter: false,
                         special: '',
                         position: [],
+                        inDrawPile: this.amount,
+                        inDiscardPile: 0,
                         kind: this.dataKind,
                         population: this.dataPopulation,
                         path: photoPath
@@ -493,17 +848,16 @@
                 //delete card from stack
                 for (let i = 0; i < this.drawStack.length; i++) {
                     if (this.drawStack[i].name == cityName) {
-                        this.drawStack[i].count--;
+                        this.drawStack[i].inDrawPile--;
                     }
                 }
                 //add the card to the currentStack
                 for (let i = 0; i < this.currentStack.length; i++) {
                     if (this.currentStack[i].name == cityName) {
-                        this.currentStack[i].count++
+                        this.currentStack[i].inDiscardPile++
                     }
                 }
-                this.drawStack.sort((a, b) => (b.count > a.count) ? 1 : (b.count === a.count) ? ((a.color > b.color) ? 1 : -1) : -1)
-                this.popit();
+                // this.popit();
             },
 
             popit() {
@@ -522,82 +876,90 @@
                 //add card to drawStack
                 for (let i = 0; i < this.drawStack.length; i++) {
                     if (this.drawStack[i].name == cityName) {
-                        this.drawStack[i].count++;
+                        this.drawStack[i].inDrawPile++;
                     }
                 }
                 //delete card from currentStack
                 for (let i = 0; i < this.currentStack.length; i++) {
                     if (this.currentStack[i].name == cityName) {
-                        this.currentStack[i].count--
+                        this.currentStack[i].inDiscardPile--
                     }
                 }
-                this.drawStack.sort((a, b) => (b.count > a.count) ? 1 : (b.count === a.count) ? ((a.color > b.color) ? 1 : -1) : -1)
-                this.popit();
+                // this.popit();
             },
 
             epidemic() {
                 this.update(this.dataCity)
-                let stackClone = []
-                for (let i = 0; i < this.currentStack.length; i++) {
-                    const card = this.currentStack[i]
-                    const currentCard = Object.assign({}, card);
-                    if (currentCard.count > 0) {
-                        stackClone.push(currentCard);
-                    }
-                    this.currentStack[i].count = 0;
+                // let stackClone = []
+                // for (let i = 0; i < this.currentStack.length; i++) {
+                //     const card = this.currentStack[i]
+                //     const currentCard = Object.assign({}, card);
+                //     if (currentCard.count > 0) {
+                //         stackClone.push(currentCard);
+                //     }
+                //     this.currentStack[i].count = 0;
+                // }
+                // this.stackHistory.unshift(stackClone);
+                // this.drawStack = this.stackHistory[0];
+                for (let i = 0; i < this.drawStack.length; i++) {
+                    this.drawStack[i].inDrawPile = this.currentStack[i].inDiscardPile;
+                    this.currentStack[i].inDiscardPile = 0;
                 }
-                this.stackHistory.unshift(stackClone);
-                this.drawStack = this.stackHistory[0];
+                this.undoEpidemicTracker = this.dataCity
+                this.dataCity = "";
             },
 
-            undoEpidemic() {
-                this.currentStack = [];
-                let previousStack = this.stackHistory[1];
-                for (let i = 0; i < this.drawStack.length; i++) {
-                    //take each card from the drawStack and put it into the currentStack (discard pile)
-                    const card = this.drawStack[i]
-                    const currentCard = Object.assign({}, card);
-                    this.currentStack.push(currentCard);
-                    //for each of these cards, go to stackHistory and update the numbers
-                    for (let j = 0; j < previousStack.length; j++) {
-                        if (currentCard.name == previousStack[j].name) {
-                            previousStack[j].count++;
-                        }
-                    }
-                }
-                this.stackHistory.shift();
-                this.drawStack = this.stackHistory[0]
-                return
-            },
+            // undoEpidemic() {
+            //     // this.currentStack = [];
+            //     // let previousStack = this.stackHistory[1];
+            //     // for (let i = 0; i < this.drawStack.length; i++) {
+            //     //     //take each card from the drawStack and put it into the currentStack (discard pile)
+            //     //     const card = this.drawStack[i]
+            //     //     const currentCard = Object.assign({}, card);
+            //     //     this.currentStack.push(currentCard);
+            //     //     //for each of these cards, go to stackHistory and update the numbers
+            //     //     for (let j = 0; j < previousStack.length; j++) {
+            //     //         if (currentCard.name == previousStack[j].name) {
+            //     //             previousStack[j].count++;
+            //     //         }
+            //     //     }
+            //     // }
+            //     // this.stackHistory.shift();
+            //     // this.drawStack = this.stackHistory[0]
+            //     for (let i = 0; i < this.drawStack.length; i++) {
+            //         if (this.drawStack[i].name == this.undoEpidemicTracker) {
+
+            //         }
+            //         this.drawStack[i].inDrawPile = this.currentStack[i].inDiscardPile;
+            //         this.currentStack[i].inDiscardPile = 0;
+            //     }
+            //     return
+            // },
 
             percent(count, arr) {
-                let total = 0
+                let amount = 0;
                 for (let i = 0; i < arr.length; i++) {
-                    total += arr[i].count
+                    amount += this.drawStack[i].inDrawPile
                 }
-                let percentage = 0;
-                for (let i = 0; i < this.infectionRate; i++) {
-                    percentage += (count / (total - i))
-                    if (percentage > 1) {
-                        percentage = 1;
+
+                function orPercent(c, n, a) {
+                    if (n === 0) {
+                        return 0
+                    } else {
+                        return ((c / (a - (n - 1))) + orPercent(c, (n - 1), a))
                     }
                 }
-                return Math.round(100 * percentage);
-            },
 
-            override() {
-                for (let i = 0; i < this.currentStack.length; i++) {
-                    if (this.currentStack[i].name == this.dataName) {
-                        if (this.dataCount > this.currentStack[i]) {
-                            alert("There are not that many cards in the discard pile!")
-                            return
-                        }
-                        this.currentStack[i].count -= this.dataCount;
+                function andPercent(c, n, a) {
+                    if (n === 0) {
+                        return 1
+                    } else {
+                        return (((c - (n - 1)) / (a - (n - 1))) * andPercent(c, n - 1, a))
                     }
-
                 }
-                this.showSpecialEvents = false;
-                this.dataName = "";
+
+
+                return Math.round(100 * (andPercent(count, this.infectionRate, amount) + orPercent(count, this.infectionRate, amount)))
             },
 
             currentStackNames() {
