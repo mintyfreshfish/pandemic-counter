@@ -11,11 +11,13 @@ Check discard pile and make sure it is accessible.
             <h1 class="bannertitle">Pandemic Counter</h1>
         </div>
         <div class="column sidebar">
+                <h2 class="piletitle">Menu</h2>
             <div class="menu">
-                <button v-b-modal="'epidemicModal'" class="epibutton">
+                <button v-b-modal="'epidemicModal'" class="epibutton menubtn">
                     <h4>Epidemic!</h4>
                 </button>
-                <b-modal hide-footer hide-header id="epidemicModal">
+                <div>
+                <!-- <b-modal hide-footer hide-header id="epidemicModal"> -->
                     <b-form-group id="input-group-e" label="City:" label-for="input-e">
                         <b-form-select class="mt-2 mb-3" id="input-e" v-model="dataCity" :options="distinctNames" required></b-form-select>
                     </b-form-group>
@@ -26,29 +28,32 @@ Check discard pile and make sure it is accessible.
 
                     <b-button variant="success" @click="epidemic()">Epidemic!</b-button>
 
-                </b-modal>
-                <button v-b-modal="'adminModal'" class="adminbutton">
+                <!-- </b-modal> -->
+                </div>
+                <button v-b-modal="'adminModal'" class="adminbutton menubtn">
                     <h4>Admin</h4>
                 </button>
-                <b-modal hide-footer hide-header id="adminModal">
+                <div>
+                <!-- <b-modal hide-footer hide-header id="adminModal"> -->
                     <b-form-group id="input-group-e" label="City:" label-for="input-e">
                         <b-form-select class="mt-2 mb-3" id="input-e" v-model="dataCity" :options="distinctNames" required></b-form-select>
                     </b-form-group>
 
-                    <b-form-group id="input-group-i" label="Rate:" label-for="input-i">
+                    <b-form-group id="input-group-i" label="Amount:" label-for="input-i">
                         <b-form-select class="mt-2 mb-3" id="input-i" v-model="toRemove" :options="numbers" required></b-form-select>
                     </b-form-group>
 
                     <b-button variant="primary" @click="removecard()">Remove!</b-button>
-                    <b-button variant="secondary" @click="replaceCard()">Replace!</b-button>
+                    <b-button variant="dark left-margin" @click="replaceCard()">Replace!</b-button>
 
-                </b-modal>
+                <!-- </b-modal> -->
+                </div>
             </div>
             <div>
-                <div class="oogbanner">
-                    <p class="oogtitle">Out of Game</p>
+                <div class="menubtn oogbanner">
+                    <h4 class="oogtitle">Out of Game</h4>
                 </div>
-                <div v-for="card in stack" :key="card.id">
+                <div v-for="card in stack" :key="card.id" class="ooglist">
                     <p v-if="card.outOfGame>=1">{{card.name}}: {{card.outOfGame}}</p>
                 </div>
             </div>
@@ -77,7 +82,7 @@ Check discard pile and make sure it is accessible.
                 <h2 class=piletitle>Discard Pile</h2>
                 <div v-for="card in currentStack" :key="card.id">
                     <div class="city" :class="determineColor(card, 'discardpile')">
-                        <button @click="undo(card.name)" class="cityicon h3 mb-2">
+                        <button @click="undo(card.name)" class="left-margin cityicon h3 mb-2">
                             <b-icon-arrow-left-circle></b-icon-arrow-left-circle>
                         </button>
                         <div class="cityname">
@@ -242,6 +247,10 @@ Check discard pile and make sure it is accessible.
         display: none;
     }
 
+    .left-margin {
+        margin-left: 15px;
+    }
+
     h1,
     h2,
     h4 {
@@ -250,7 +259,7 @@ Check discard pile and make sure it is accessible.
     }
 
     .home {
-        width: 1400px;
+        width: 1200px;
         height: 100%;
         margin: auto;
     }
@@ -275,47 +284,61 @@ Check discard pile and make sure it is accessible.
         width: 200px;
     }
 
-    .menu {
-        height: 200px;
+    .menubtn {
+        display: inline-block;
+        width: 100%;
+        padding: 0.46em 1.6em;
+        border:solid 1px black;
+        box-sizing: border-box;
+        text-decoration: none;
+        font-weight: 300;
+        color: #000000;
+        text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
+        background-color: #000000;
         text-align: center;
+        transition: all 0.15s;
+    }
+
+    .menubtn:hover {
+        text-shadow: 0 0 2em rgba(255, 255, 255, 1);
+        color: #FFFFFF;
+        border-color: black;
     }
 
     .epibutton {
-        width: 150px;
-        height: 40px;
         background-color: green;
-        border-radius: 10px;
-        border: none;
-        padding: 5px 0px;
-        margin-top: 20px;
-        margin-bottom: 10px;
+        margin-top: 10px;
+    }
 
+    .epibutton:hover {
+        background-color: darkgreen;
     }
 
     .adminbutton {
-        width: 100px;
-        height: 40px;
-        background-color: blue;
-        border-radius: 10px;
-        border: none;
-        padding: 5px 0px;
-        margin: 10px;
+        background-color: green;
+    }
+
+    .adminbutton:hover {
+        background-color: darkblue;
     }
 
     .oogbanner {
         background-color: black;
         text-align: center;
-        color: white;
     }
 
     .oogtitle {
         font-family: 'Montserrat', sans-serif;
     }
 
+    .ooglist {
+        margin-left: 30px;
+    }
+
     .piles {
         background-color: lightpink;
         margin-left: 200px;
-        width: 1200px;
+        width: 1000px;
     }
 
     .drawpile {
@@ -342,30 +365,31 @@ Check discard pile and make sure it is accessible.
         display: flex;
         flex-wrap: wrap;
         font-family: 'Montserrat', sans-serif;
+        border: none;
     }
 
     .cityname {
-        width: 250px;
-        padding-top: 7px;
+        width: 210px;
+        padding-top: 15px;
         padding-bottom: 7px;
     }
 
     .citypercent {
         width: 50px;
-        margin-left: 100px;
-        padding-top: 7px;
+        margin-left: 40px;
+        padding-top: 15px;
         padding-bottom: 7px;
     }
 
     .cityamount {
         width: 100px;
         margin-left: 50px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding-top: 17px;
+        // padding-bottom: 15px;
     }
 
     .cityicon {
-        padding-top: 5px;
+        padding-top: 12px;
         padding-bottom: 5px;
         background-color: rgba(0, 0, 0, 0);
         border: none;
@@ -721,7 +745,7 @@ Check discard pile and make sure it is accessible.
                 for (let i = 0; i < this.stack.length; i++) {
                     const card = this.stack[i]
                     //add non-server properties
-                    card.inDrawPile = card.count-card.box6;
+                    card.inDrawPile = card.count - card.box6;
                     card.inDiscardPile = 0;
                     card.outOfGame = card.box6;
                     if (card.color == "blue" || card.color == "black" || card.color == "yellow" || card.color == "red") {
